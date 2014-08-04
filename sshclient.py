@@ -2,11 +2,11 @@
 ## Name:     sshclient.py
 ## Purpose:  Wrapper for OpenSSH command-line tool.
 ##
+## Copyright (c) 2009 Michael J. Fromberger, All Rights Reserved.
+##
 
 import getpass, os, threading, select
 import runpty
-
-# {{ class SSH
 
 class SSH (object):
     """Interface to the SSH command-line tool.
@@ -28,9 +28,9 @@ class SSH (object):
     is passed back to SSH through the pty.
     """
     def __init__(self, host, *args, **opts):
-        """Set up an SSH wrapper.  Positional are passed as the remote
-        command; keyword arguments are used to set values.  Certain
-        keywords are special, these are:
+        """Set up an SSH wrapper.  Positional arguments are passed as the
+        remote command; keyword arguments are used to set values.  Certain
+        keyword arguments are special, these are:
 
         ssh_path    -- if present, use explicit path to SSH executable.
         subsystem   -- if present, request the named subsystem.
@@ -42,8 +42,8 @@ class SSH (object):
                        TTY not to be allocated.  If absent, the default is
                        used.
 
-        All other keyword arguments should match the spelling of SSH
-        options from the ssh_config manual page.
+        All other keyword arguments should match the spelling of SSH options
+        from the ssh_config manual page, e.g., "Port", "User".
         """
         self._host = host
 
@@ -138,8 +138,7 @@ class SSH (object):
         pty   = self._pty
         while True:
             try:
-                rds, wds, eds = select.select(
-                    [pty], (), (), sleep)
+                rds, wds, eds = select.select([pty], (), (), sleep)
             except select.error:
                 # This usually means "bad file descriptor"
                 break
@@ -209,8 +208,6 @@ class SSH (object):
         argv.append(host)
         argv.extend(cmd)
         return argv
-
-# }}
 
 __all__ = ("SSH",)
 

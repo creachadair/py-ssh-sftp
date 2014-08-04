@@ -2,9 +2,10 @@
 ## Name:     runpty.py
 ## Purpose:  Run a subprocess with a pseudo-terminal.
 ##
-import os, signal
+## Copyright (c) 2009 Michael J. Fromberger, All Rights Reserved.
+##
 
-# {{ run_with_pty(argv, path)
+import os, signal
 
 def run_with_pty(argv, path = None):
     """Run the specified program in a child process with a pseudo-
@@ -58,7 +59,5 @@ def run_with_pty(argv, path = None):
         os.close(slave)
 
         return pid, master, headw, tailr
-
-# }}
 
 # Here there be dragons

@@ -2,10 +2,10 @@
 ## Name:     ioqueue.py
 ## Purpose:  Multi-threaded work queue.
 ##
+## Copyright (c) 2009 Michael J. Fromberger, All Rights Reserved.
+##
 
 import threading, sys
-
-# {{ TIMEOUT(v)
 
 if sys.version_info[0] == 3:
     def TIMEOUT(v): return v
@@ -23,19 +23,14 @@ else:
         else:
             return v
 
-# }}
-
-# {{ Exception classes
 
 class task_missing (KeyError):
     "No such task exists."
 
+
 class task_not_owner (KeyError):
     "You are not the owner of that task."
 
-# }}
-
-# {{ class task
 
 class task (object):
     def __init__(self, id, tag, attrs):
@@ -87,9 +82,6 @@ class task (object):
         return '#<%s id=%s tag=%r>' % (
             type(self).__name__, self.id, self.tag)
 
-# }}
-
-# {{ class ioqueue
 
 class ioqueue (object):
     """Simple producer/consumer queue.  Similar to the "queue" module,
@@ -327,7 +319,6 @@ class ioqueue (object):
                 else:
                     return found
 
-# }}
 
 __all__ = ("ioqueue", "task")
 

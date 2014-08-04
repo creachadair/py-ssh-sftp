@@ -2,16 +2,17 @@
 ## Name:     sftpclient.py
 ## Purpose:  SFTP client library.
 ##
+## Copyright (c) 2009 Michael J. Fromberger, All Rights Reserved.
+##
 
 import errno, functools, os, struct, threading
 import stat as os_stat
-import bitter, ioqueue, sshclient
+import ioqueue, sshclient, struct
 
 # This is the protocol version we claim to support.  Don't change it
 # unless you know what the hell you're doing.
 SFTP_PROTOCOL_VERSION = 3
 
-# {{ @enum_reverse(cls)
 
 def enum(cls):
     """Make a class behave like an enumerated type by generating a reverse
@@ -29,9 +30,6 @@ def enum(cls):
     cls.codes = rmap
     return cls
 
-# }}
-
-# {{ enum SSH_FXP
 
 @enum
 class FXP (object):
@@ -66,9 +64,6 @@ class FXP (object):
     EXTENDED = 200
     EXTENDED_REPLY = 201
 
-# }}
-
-# {{ enum SSH_FILEXFER
 
 @enum
 class FILEXFER_ATTR (object):
@@ -81,9 +76,6 @@ class FILEXFER_ATTR (object):
     ACMODTIME       = 0x00000008
     EXTENDED        = 0x80000000
 
-# }}
-
-# {{ enum SSH_FXF
 
 @enum
 class FXF (object):
@@ -96,9 +88,6 @@ class FXF (object):
     TRUNC   = 0x00000010
     EXCL    = 0x00000020
 
-# }}
-
-# {{ enum SSH_FX
 
 @enum
 class FX (object):
@@ -114,9 +103,6 @@ class FX (object):
     CONNECTION_LOST   = 7  # (local only)
     OP_UNSUPPORTED    = 8
 
-# }}
-
-# {{ Exception classes
 
 class sftp_error (Exception):
     "Base class for SFTP client exceptions."
@@ -130,13 +116,107 @@ class sftp_io_error (sftp_error):
 class sftp_status_error (sftp_error):
     "Unsuccessful status reply from the server."
 
-# }}
 
-# {{ class sbitter
+class sbitter (object):
+    """Represents a writable view of a sequenced data type such as a
+    string, list, or buffer.  Operations on a bitter return a bitter,
+    so that it is possible to chain calls functionally.  Furthermore,
+    all operations are non-destructive.
 
-class sbitter (bitter.pbitter):
-    """Extensions to pbitter for SFTP data types.
+    The important properties of a bitter are:
+    .pos    -- the current position in the input.
+    .source -- the input itself.
+    .value  -- the value obtained by a read or set operation.
+    .length -- the length of the input.
+
+    Sources will generally be lists, tuples, or strings, but in
+    principle any type that supports len, integer indexing, slicing,
+    and catenation should work.
     """
+    def __init__(self, source, pos = 0, value = None):
+        """Source may be any indexable sequence type.
+        """
+        self._src = source
+        self._pos = slice(pos).indices(len(source))[1]
+        self._val = value
+
+    @property
+    def pos(self): return self._pos
+    @property
+    def source(self): return self._src
+    @property
+    def value(self): return self._val
+    @property
+    def length(self): return len(self._src)
+
+    def update(self, func, *args, **kw):
+        """Update the value by applying func to the current value."""
+        return type(self)(self.source, self.pos, func(self.value, *args, **kw))
+
+    def __len__(self): return self.length
+
+    def __repr__(self):
+        return '#<%s @%d src[%d]=%r%s%s>' % (
+            type(self).__name__, self.pos, len(self),
+            self.source[:24], '+' if len(self) > 24 else '',
+            '' if self.value is None else 'v')
+
+    def seek(self, pos):
+        """Seek to the specified absolute position, returning an sbitter.
+        Use None to seek to the end.
+        """
+        if pos is None: pos = self.length
+        if pos == self.pos: return self
+        else: return type(self)(self.source, pos, self.value)
+
+    def move(self, offset):
+        """Seek relative to the current position, returning an sbitter.
+        """
+        if offset == 0: return self
+        else: return type(self)(self.source, self.pos + offset, self.value)
+
+    def into(self, d, key):
+        """Store the value into a dictionary under the given key."""
+        d[key] = self.value
+        return self
+
+    def read(self, nc=None):
+        """Read up to nc elements at the current position into value.
+        Set nc=None to use the value.
+        """
+        if nc is None: nc = self.value or 0
+        d = self.source[self.pos : self.pos + nc]
+        return type(self)(self.source, self.pos + len(d), d)
+
+    def readn(self, nc=None):
+        """Read exactly nc elements at the current position into value.
+        Set nc=None to use the value.
+        """
+        if nc is None: nc = self.value or 0
+        d = self.source[self.pos : self.pos + nc]
+        if len(d) != nc: raise ValueError("expected %d elements" % nc)
+        return type(self)(self.source, self.pos + len(d), d)
+
+    def write(self, v=None):
+        """Write elements of v at the current position.  Set v=None to
+        write the value.
+        """
+        if v is None: v = self.value
+        d = self.source[:self.pos] + v
+        np = len(d)
+        return type(self)(d + self.source[np:], np, self.value)
+
+    def pack(self, fmt, *args):
+        """Equivalent to self.write(struct.pack(fmt, *args)).
+        """
+        return self.write(struct.pack(fmt, *args))
+
+    def unpack(self, fmt):
+        """Unpack a format from the struct module into the value.
+        """
+        return self.readn(struct.calcsize(fmt)).update(
+            lambda v: struct.unpack(fmt, v))
+
     def read_uint32(self):
         return self.unpack('>I').update(lambda v: v[0])
 
@@ -160,9 +240,6 @@ class sbitter (bitter.pbitter):
     def write_sftp_strs(self, ss):
         return functools.reduce(sbitter.write_sftp_str, ss, self)
 
-# }}
-
-# {{ @catchkey(meth)
 
 def catchkey(meth):
     """Convert KeyError thrown out of an ioqueue access and convert it
@@ -176,9 +253,6 @@ def catchkey(meth):
 
     return functools.update_wrapper(wrapper, meth)
 
-# }}
-
-# {{ class sftp_core
 
 class sftp_core (object):
     """Low-level SFTP client, implementing basic packet I/O and request
@@ -395,9 +469,6 @@ class sftp_core (object):
         except OSError:
             pass
 
-# }}
-
-# {{ class sftp_client
 
 class sftp_client (sftp_core):
     """Higher-level SFTP client.
@@ -975,9 +1046,6 @@ class sftp_client (sftp_core):
         elif code not in expected:
             raise sftp_proto_error("unexpected response", code, expected)
 
-# }}
-
-# {{ class SFTP
 
 class SFTP (sftp_client):
     """A wrapper for sftp_client that includes an interface to set up and tear
@@ -1010,9 +1078,6 @@ class SFTP (sftp_client):
         super(SFTP, self).stop()
         return self._ssh.stop()
 
-# }}
-
-# {{ @checkopen(meth)
 
 def checkopen(meth):
     """Verify that the file is open before applying a file method.  Raises
@@ -1025,9 +1090,6 @@ def checkopen(meth):
 
     return functools.update_wrapper(wrapper, meth)
 
-# }}
-
-# {{ class sftp_entry
 
 class sftp_entry (tuple):
     """Information on a directory entry."""
@@ -1053,9 +1115,6 @@ class sftp_entry (tuple):
     def stat(self):
         return self.dir.client.lstat(self.path)
 
-# }}
-
-# {{ class sftp_thing
 
 class sftp_thing (object):
     """Base class for file and directory wrappers."""
@@ -1110,9 +1169,6 @@ class sftp_thing (object):
     def __del__(self):
         self.close()
 
-# }}
-
-# {{ class sftp_file
 
 class sftp_file (sftp_thing):
     """Provides an interface to a file on an SFTP server that is similar to the
@@ -1415,9 +1471,6 @@ class sftp_file (sftp_thing):
             spans.append((lo, hi - lo))
         return spans
 
-# }}
-
-# {{ class sftp_dir
 
 class sftp_dir (sftp_thing):
     """Provides an interface to a directory as an iterable sequence.
@@ -1493,7 +1546,6 @@ class sftp_dir (sftp_thing):
         """
         return self.client.statvfs(self.path)
 
-# }}
 
 __all__ = ("sftp_core", "sftp_client", "sftp_file", "sftp_dir")
 
