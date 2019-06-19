@@ -8,9 +8,12 @@
 import threading, sys
 
 if sys.version_info[0] == 3:
-    def TIMEOUT(v): return v
+
+    def TIMEOUT(v):
+        return v
 else:
     _mainthread = threading.current_thread()
+
     def TIMEOUT(v):
         # Interpret a timeout value.  Ordinarily, None means no timeout, but if
         # we sleep the main thread unconditionally, signal handlers will not
@@ -24,40 +27,44 @@ else:
             return v
 
 
-class task_missing (KeyError):
+class task_missing(KeyError):
     "No such task exists."
 
 
-class task_not_owner (KeyError):
+class task_not_owner(KeyError):
     "You are not the owner of that task."
 
 
-class task (object):
+class task(object):
+
     def __init__(self, id, tag, attrs):
-        self.id     = id
-        self.tag    = tag
-        self.attrs  = attrs
+        self.id = id
+        self.tag = tag
+        self.attrs = attrs
         self.status = None
-        self.done   = False
+        self.done = False
         self._waitx = True
         self._tcond = threading.Condition(threading.Lock())
 
     def __getattr__(self, attr):
         if attr.startswith('t_'):
-            try: return self.attrs[attr[2:]]
-            except KeyError: pass
+            try:
+                return self.attrs[attr[2:]]
+            except KeyError:
+                pass
         raise AttributeError(attr)
 
     @property
     def detached(self):
         with self._tcond:
             return not self._waitx
+
     @detached.setter
     def detached(self, value):
         with self._tcond:
             self._waitx = not bool(value)
 
-    def join(self, timeout = None):
+    def join(self, timeout=None):
         with self._tcond:
             if not self.done:
                 self._tcond.wait(TIMEOUT(timeout))
@@ -79,23 +86,23 @@ class task (object):
                 self._tcond.notify_all()
 
     def __repr__(self):
-        return '#<%s id=%s tag=%r>' % (
-            type(self).__name__, self.id, self.tag)
+        return '#<%s id=%s tag=%r>' % (type(self).__name__, self.id, self.tag)
 
 
-class ioqueue (object):
+class ioqueue(object):
     """Simple producer/consumer queue.  Similar to the "queue" module,
     but gives the consumer access to tasks that may not be at the head
     of the queue, and allows a producer to push a task at the head of
     the queue.
     """
+
     def __init__(self, **opts):
         """Keyword options understood:
 
         detach_tasks -- if true, detach all new tasks by default.
         """
         self._tasks = {}  # unclaimed tasks; id -> rid, task
-        self._busy  = {}  # tasks in progress; id -> rid, wid, task
+        self._busy = {}  # tasks in progress; id -> rid, wid, task
         self._detch = bool(opts.pop('detach_tasks', False))
 
         # rid -- thread ID that created the task
@@ -195,15 +202,14 @@ class ioqueue (object):
         with self._tcond:
             me = threading.current_thread().ident
 
-            kill = set(id for id, (rid, t) in self._tasks.items()
-                       if rid == me)
+            kill = set(id for id, (rid, t) in self._tasks.items() if rid == me)
 
             for id in kill:
                 self._tasks.pop(id)
 
             return kill
 
-    def join_task(self, id, timeout = None):
+    def join_task(self, id, timeout=None):
         """Block until the specified task is complete, and return its
         status.
         """
@@ -247,7 +253,7 @@ class ioqueue (object):
         self._busy[id] = rid, threading.current_thread().ident, t
         return t
 
-    def next_task(self, timeout = None):
+    def next_task(self, timeout=None):
         """Remove and return the head of the queue.  If timeout is
         None, blocks until a task is available; otherwise throws
         KeyError if no task is found within the timeout.
@@ -280,7 +286,7 @@ class ioqueue (object):
             self._busy.pop(task.id)
             self._tasks[task.id] = rid, task
 
-    def next_matching(self, matching, timeout = None):
+    def next_matching(self, matching, timeout=None):
         """Remove and return the next task t for which matching(t) is
         true.  If timeout is None, blocks until a matching task is
         available, otherwise throws KeyError if no matching task is
@@ -300,13 +306,14 @@ class ioqueue (object):
                 else:
                     raise task_missing("no tasks")
 
-    def all_matching(self, matching, timeout = None):
+    def all_matching(self, matching, timeout=None):
         """As .next_matching(), but returns all matching tasks in a
         list ordered by task ID.  Returns an empty list if no tasks
         were found within the timeout.
         """
         with self._tcond:
-            found = [] ; first = True
+            found = []
+            first = True
             while True:
                 for id in sorted(self._tasks):
                     rid, t = self._tasks[id]

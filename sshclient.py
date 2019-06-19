@@ -8,7 +8,8 @@
 import getpass, os, threading, select
 import runpty
 
-class SSH (object):
+
+class SSH(object):
     """Interface to the SSH command-line tool.
 
     Usage:
@@ -27,6 +28,7 @@ class SSH (object):
     informational queries to the .query() method, whose return value
     is passed back to SSH through the pty.
     """
+
     def __init__(self, host, *args, **opts):
         """Set up an SSH wrapper.  Positional arguments are passed as the
         remote command; keyword arguments are used to set values.  Certain
@@ -51,24 +53,27 @@ class SSH (object):
         self._hostok = opts.pop('host_ok', None)
 
         self._argv = self._getargv(host, args, opts)
-        self._pid  = None # child process PID
-        self._pty  = None # file descriptor to pty
-        self._head = None # file descriptor to SSH stdin
-        self._tail = None # file descriptor to SSH stdout
-        self._pmon = None # pty monitor thread
+        self._pid = None  # child process PID
+        self._pty = None  # file descriptor to pty
+        self._head = None  # file descriptor to SSH stdin
+        self._tail = None  # file descriptor to SSH stdout
+        self._pmon = None  # pty monitor thread
 
     @property
     def child_pid(self):
         "The process ID of the SSH subprocess."
         return self._pid
+
     @property
     def pty_fd(self):
         "The file descriptor for the SSH pty."
         return self._pty
+
     @property
     def input_fd(self):
         "The file descriptor connected to SSH stdin."
         return self._head
+
     @property
     def output_fd(self):
         "The file descriptor connected to SSH stdout."
@@ -84,12 +89,11 @@ class SSH (object):
     def start(self):
         """Start up the SSH subprocess."""
         pid, pty, head, tail = runpty.run_with_pty(self._argv)
-        self._pid  = pid
-        self._pty  = pty
+        self._pid = pid
+        self._pty = pty
         self._head = head
         self._tail = tail
-        self._pmon = threading.Thread(name = "pty_monitor",
-                                      target = self._monitor)
+        self._pmon = threading.Thread(name="pty_monitor", target=self._monitor)
 
         self._pmon.daemon = True
         self._pmon.start()
@@ -98,12 +102,18 @@ class SSH (object):
     def stop(self):
         """Shut down the SSH subprocess."""
         if self._pid is not None:
-            try: os.close(self._head)
-            except OSError: pass
-            try: os.close(self._tail)
-            except OSError: pass
-            try: os.close(self._pty)
-            except OSError: pass
+            try:
+                os.close(self._head)
+            except OSError:
+                pass
+            try:
+                os.close(self._tail)
+            except OSError:
+                pass
+            try:
+                os.close(self._pty)
+            except OSError:
+                pass
             self._pmon.join()
             try:
                 return os.waitpid(self._pid, 0)[1]
@@ -135,7 +145,7 @@ class SSH (object):
         """
         query = []
         sleep = None
-        pty   = self._pty
+        pty = self._pty
         while True:
             try:
                 rds, wds, eds = select.select([pty], (), (), sleep)
@@ -146,7 +156,7 @@ class SSH (object):
             # Either there is data, or the pty is closed.
             if pty in rds:
                 chunk = os.read(pty, 1024)
-                if not chunk: break # EOF
+                if not chunk: break  # EOF
                 query.append(chunk)
                 sleep = 0.1
                 continue
@@ -179,15 +189,17 @@ class SSH (object):
         """[private] Construct an argument vector from the options
         that were passed in to the constructor.
         """
+
         def OV(v):
-            if v is True:    return "yes"
+            if v is True: return "yes"
             elif v is False: return "no"
             elif isinstance(v, (list, tuple)):
                 return '"%s"' % ','.join(str(s) for s in v)
-            else: return '"%s"' % v
+            else:
+                return '"%s"' % v
 
         argv = [opts.pop('ssh_path', "ssh")]
-        cmd  = args
+        cmd = args
 
         if 'ssh_options' in opts:
             opts.update(opts.pop('ssh_options'))
@@ -208,6 +220,7 @@ class SSH (object):
         argv.append(host)
         argv.extend(cmd)
         return argv
+
 
 __all__ = ("SSH",)
 

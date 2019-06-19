@@ -23,8 +23,7 @@ def enum(cls):
         if name == name.upper():
             k = cls.__name__ + "_" + name
             v = getattr(cls, name)
-            if (v not in rmap or
-                k < rmap[v]):
+            if (v not in rmap or k < rmap[v]):
                 rmap[v] = k
 
     cls.codes = rmap
@@ -32,92 +31,95 @@ def enum(cls):
 
 
 @enum
-class FXP (object):
+class FXP(object):
     """Enumeration for packet types."""
-    INIT     = 1
-    VERSION  = 2
-    OPEN     = 3
-    CLOSE    = 4
-    READ     = 5
-    WRITE    = 6
-    LSTAT    = 7
-    FSTAT    = 8
-    SETSTAT  = 9
+    INIT = 1
+    VERSION = 2
+    OPEN = 3
+    CLOSE = 4
+    READ = 5
+    WRITE = 6
+    LSTAT = 7
+    FSTAT = 8
+    SETSTAT = 9
     FSETSTAT = 10
-    OPENDIR  = 11
-    READDIR  = 12
-    REMOVE   = 13
-    MKDIR    = 14
-    RMDIR    = 15
+    OPENDIR = 11
+    READDIR = 12
+    REMOVE = 13
+    MKDIR = 14
+    RMDIR = 15
     REALPATH = 16
-    STAT     = 17
-    RENAME   = 18
+    STAT = 17
+    RENAME = 18
     READLINK = 19
-    SYMLINK  = 20
+    SYMLINK = 20
 
-    STATUS   = 101
-    HANDLE   = 102
-    DATA     = 103
-    NAME     = 104
-    ATTRS    = 105
+    STATUS = 101
+    HANDLE = 102
+    DATA = 103
+    NAME = 104
+    ATTRS = 105
 
     EXTENDED = 200
     EXTENDED_REPLY = 201
 
 
 @enum
-class FILEXFER_ATTR (object):
+class FILEXFER_ATTR(object):
     """Enumeration for file attribute flags."""
 
     # Protocol version 3 flags
-    SIZE            = 0x00000001
-    UIDGID          = 0x00000002
-    PERMISSIONS     = 0x00000004
-    ACMODTIME       = 0x00000008
-    EXTENDED        = 0x80000000
+    SIZE = 0x00000001
+    UIDGID = 0x00000002
+    PERMISSIONS = 0x00000004
+    ACMODTIME = 0x00000008
+    EXTENDED = 0x80000000
 
 
 @enum
-class FXF (object):
+class FXF(object):
     """Enumeration for file-opening flags."""
-    READ    = 0x00000001
-    WRITE   = 0x00000002
-    APPEND  = 0x00000004
-    CREAT   = 0x00000008
-    CREATE  = 0x00000008
-    TRUNC   = 0x00000010
-    EXCL    = 0x00000020
+    READ = 0x00000001
+    WRITE = 0x00000002
+    APPEND = 0x00000004
+    CREAT = 0x00000008
+    CREATE = 0x00000008
+    TRUNC = 0x00000010
+    EXCL = 0x00000020
 
 
 @enum
-class FX (object):
+class FX(object):
     """Enumeration for status codes."""
 
-    OK                = 0  # success
-    EOF               = 1  # end of file
-    NO_SUCH_FILE      = 2
+    OK = 0  # success
+    EOF = 1  # end of file
+    NO_SUCH_FILE = 2
     PERMISSION_DENIED = 3
-    FAILURE           = 4  # unspecified failure
-    BAD_MESSAGE       = 5  # bad packet, protocol error
-    NO_CONNECTION     = 6  # (local only)
-    CONNECTION_LOST   = 7  # (local only)
-    OP_UNSUPPORTED    = 8
+    FAILURE = 4  # unspecified failure
+    BAD_MESSAGE = 5  # bad packet, protocol error
+    NO_CONNECTION = 6  # (local only)
+    CONNECTION_LOST = 7  # (local only)
+    OP_UNSUPPORTED = 8
 
 
-class sftp_error (Exception):
+class sftp_error(Exception):
     "Base class for SFTP client exceptions."
 
-class sftp_proto_error (sftp_error):
+
+class sftp_proto_error(sftp_error):
     "Unexpected reply from the server."
 
-class sftp_io_error (sftp_error):
+
+class sftp_io_error(sftp_error):
     "Unable to perform the requested I/O."
 
-class sftp_status_error (sftp_error):
+
+class sftp_status_error(sftp_error):
     "Unsuccessful status reply from the server."
 
 
-class sbitter (object):
+class sbitter(object):
     """Represents a writable view of a sequenced data type such as a
     string, list, or buffer.  Operations on a bitter return a bitter,
     so that it is possible to chain calls functionally.  Furthermore,
@@ -133,7 +135,8 @@ class sbitter (object):
     principle any type that supports len, integer indexing, slicing,
     and catenation should work.
     """
-    def __init__(self, source, pos = 0, value = None):
+
+    def __init__(self, source, pos=0, value=None):
         """Source may be any indexable sequence type.
         """
         self._src = source
@@ -141,25 +144,32 @@ class sbitter (object):
         self._val = value
 
     @property
-    def pos(self): return self._pos
+    def pos(self):
+        return self._pos
+
     @property
-    def source(self): return self._src
+    def source(self):
+        return self._src
+
     @property
-    def value(self): return self._val
+    def value(self):
+        return self._val
+
     @property
-    def length(self): return len(self._src)
+    def length(self):
+        return len(self._src)
 
     def update(self, func, *args, **kw):
         """Update the value by applying func to the current value."""
         return type(self)(self.source, self.pos, func(self.value, *args, **kw))
 
-    def __len__(self): return self.length
+    def __len__(self):
+        return self.length
 
     def __repr__(self):
         return '#<%s @%d src[%d]=%r%s%s>' % (
-            type(self).__name__, self.pos, len(self),
-            self.source[:24], '+' if len(self) > 24 else '',
-            '' if self.value is None else 'v')
+            type(self).__name__, self.pos, len(self), self.source[:24],
+            '+' if len(self) > 24 else '', '' if self.value is None else 'v')
 
     def seek(self, pos):
         """Seek to the specified absolute position, returning an sbitter.
@@ -185,7 +195,7 @@ class sbitter (object):
         Set nc=None to use the value.
         """
         if nc is None: nc = self.value or 0
-        d = self.source[self.pos : self.pos + nc]
+        d = self.source[self.pos:self.pos + nc]
         return type(self)(self.source, self.pos + len(d), d)
 
     def readn(self, nc=None):
@@ -193,7 +203,7 @@ class sbitter (object):
         Set nc=None to use the value.
         """
         if nc is None: nc = self.value or 0
-        d = self.source[self.pos : self.pos + nc]
+        d = self.source[self.pos:self.pos + nc]
         if len(d) != nc: raise ValueError("expected %d elements" % nc)
         return type(self)(self.source, self.pos + len(d), d)
 
@@ -214,8 +224,8 @@ class sbitter (object):
     def unpack(self, fmt):
         """Unpack a format from the struct module into the value.
         """
-        return self.readn(struct.calcsize(fmt)).update(
-            lambda v: struct.unpack(fmt, v))
+        return self.readn(
+            struct.calcsize(fmt)).update(lambda v: struct.unpack(fmt, v))
 
     def read_uint32(self):
         return self.unpack('>I').update(lambda v: v[0])
@@ -226,11 +236,11 @@ class sbitter (object):
     def read_sftp_str(self):
         return self.read_uint32().read(None)
 
-    def write_uint32(self, v = None):
+    def write_uint32(self, v=None):
         if v is None: v = self.value
         return self.pack('>I', v)
 
-    def write_uint64(self, v = None):
+    def write_uint64(self, v=None):
         if v is None: v = self.value
         return self.pack('>Q', v)
 
@@ -245,6 +255,7 @@ def catchkey(meth):
     """Convert KeyError thrown out of an ioqueue access and convert it
     into sftp_io_error.
     """
+
     def wrapper(self, *args, **kw):
         try:
             return meth(self, *args, **kw)
@@ -254,10 +265,11 @@ def catchkey(meth):
     return functools.update_wrapper(wrapper, meth)
 
 
-class sftp_core (object):
+class sftp_core(object):
     """Low-level SFTP client, implementing basic packet I/O and request
     mechanics.  Subclasses should provide higher-level abstractions.
     """
+
     def __init__(self, ifd, ofd):
         """Create an SFTP client with file descriptors connected to an active
         SSH transport of some kind.
@@ -272,17 +284,19 @@ class sftp_core (object):
         # the rest of the client sends and receives packets via the
         # queue objects.
 
-        self._rq = ioqueue.ioqueue(detach_tasks = True)
-        self._rd = threading.Thread(target = self._reader, name = "Reader")
-        self._wq = ioqueue.ioqueue(detach_tasks = True)
-        self._wr = threading.Thread(target = self._writer, name = "Writer")
+        self._rq = ioqueue.ioqueue(detach_tasks=True)
+        self._rd = threading.Thread(target=self._reader, name="Reader")
+        self._wq = ioqueue.ioqueue(detach_tasks=True)
+        self._wr = threading.Thread(target=self._writer, name="Writer")
 
     def start(self):
         """Start the I/O processing threads.  This method must be called before
         any data may be read from or written to the server.
         """
-        self._rd.daemon = True; self._rd.start()
-        self._wr.daemon = True; self._wr.start()
+        self._rd.daemon = True
+        self._rd.start()
+        self._wr.daemon = True
+        self._wr.start()
         return self
 
     @catchkey
@@ -294,10 +308,14 @@ class sftp_core (object):
             self._wq.push_task('stop')
             self._wr.join()
             self._wq.flush()
-        try: os.close(self.ofd)
-        except OSError: pass
-        try: os.close(self.ifd)
-        except OSError: pass
+        try:
+            os.close(self.ofd)
+        except OSError:
+            pass
+        try:
+            os.close(self.ifd)
+        except OSError:
+            pass
         self._rd.join()
         self._rq.flush()
 
@@ -311,7 +329,7 @@ class sftp_core (object):
         """
         return (self._wr.is_alive() and self._rd.is_alive())
 
-    def put_packet(self, type, request_id, data = b''):
+    def put_packet(self, type, request_id, data=b''):
         """Schedule a packet to be written to the server.  This method returns
         as soon as the packet has been queued, even if it has not yet been
         actually transmitted.
@@ -321,10 +339,10 @@ class sftp_core (object):
         if not self._wr.is_alive():
             raise sftp_io_error("writer thread is closed")
         return self._wq.add_task(
-            'send', type = type, request_id = request_id, data = data)
+            'send', type=type, request_id=request_id, data=data)
 
     @catchkey
-    def push_packet(self, type, request_id, data = b''):
+    def push_packet(self, type, request_id, data=b''):
         """Write a single packet to the server as soon as possible; this method
         blocks until the packet has been written.
 
@@ -333,34 +351,36 @@ class sftp_core (object):
         if not self._wr.is_alive():
             raise sftp_io_error("writer thread is closed")
         return self._wq.push_task(
-            'send', type = type, request_id = request_id, data = data)
+            'send', type=type, request_id=request_id, data=data)
 
-    def get_any_packet(self, timeout = None):
+    def get_any_packet(self, timeout=None):
         """Read a single packet from the server; throws KeyError if timeout is
         reached and no packet is available.
         """
+
         def mfunc(t):
             return t.tag == 'recv'
 
         return self._getpacket(mfunc, timeout)
 
-    def put_request(self, type, request_id, data = b''):
+    def put_request(self, type, request_id, data=b''):
         """Send a single request packet and wait for the corresponding
         response.  Returns the response packet.
         """
         self.put_packet(type, request_id, data)
         return self.get_request_packet(request_id)
 
-    def get_request_packet(self, request_id, timeout = None):
+    def get_request_packet(self, request_id, timeout=None):
         """Read the next available packet matching the given request_id; throws
         KeyError if timeout isn't None and no packet is available.
         """
+
         def mfunc(t):
             return t.t_request_id == request_id
 
         return self._getpacket(mfunc, timeout)
 
-    def get_matching_packet(self, mfunc, timeout = None):
+    def get_matching_packet(self, mfunc, timeout=None):
         """Read the next available packet matching the given function; throws
         KeyError if timeout is set and no packet is available.
         """
@@ -435,7 +455,7 @@ class sftp_core (object):
                 data = self._readn(n)
 
                 pt, rid, data = self._datasplit('>BI', data)
-                self._rq.add_task('recv', type = pt, request_id = rid, data = data)
+                self._rq.add_task('recv', type=pt, request_id=rid, data=data)
         except EOFError:
             pass
 
@@ -461,7 +481,8 @@ class sftp_core (object):
                 # uint32           length -- length excluding this field.
                 # byte             type   -- packet type code.
                 # byte[length - 1] data   -- payload.
-                body = struct.pack('>BI', req.t_type, req.t_request_id) + req.t_data
+                body = struct.pack('>BI', req.t_type,
+                                   req.t_request_id) + req.t_data
                 pack = struct.pack('>I', len(body)) + body
 
                 nw = self._write(pack)
@@ -470,7 +491,7 @@ class sftp_core (object):
             pass
 
 
-class sftp_client (sftp_core):
+class sftp_client(sftp_core):
     """Higher-level SFTP client.
     """
 
@@ -478,7 +499,7 @@ class sftp_client (sftp_core):
     MAX_WRITE_SIZE = 2**16
 
     # Maximum allowed size data for a single read request, in bytes.
-    MAX_READ_SIZE  = 2**16
+    MAX_READ_SIZE = 2**16
 
     def __init__(self, ifd, ofd):
         super(sftp_client, self).__init__(ifd, ofd)
@@ -535,13 +556,13 @@ class sftp_client (sftp_core):
         """
         return self._getstat(self._wdpath(path), FXP.LSTAT)
 
-    def listdir(self, path = None):
+    def listdir(self, path=None):
         """Return a list of names of the objects in the directory named by
         path.
         """
         with self.opendir(self._wdpath(path, True)) as d:
-            return list(name for name, long, attrs in d
-                        if name not in (b'.', b'..'))
+            return list(
+                name for name, long, attrs in d if name not in (b'.', b'..'))
 
     def mkdir(self, path, **attrs):
         """Create a new empty directory, with initial stat values optionally
@@ -552,7 +573,7 @@ class sftp_client (sftp_core):
             .write(self._packattrs(attrs))
         self._dostat(FXP.MKDIR, p.source)
 
-    def open(self, path, flags = 'r', **attrs):
+    def open(self, path, flags='r', **attrs):
         """Open or create a file.  The file is opened with accesses described
         by the following flag characters:
 
@@ -573,7 +594,7 @@ class sftp_client (sftp_core):
         If these are omitted, the server will choose default values.
         """
         pflags = self._pflags(flags)
-        tpath  = self._wdpath(path)
+        tpath = self._wdpath(path)
         if pflags & FXF.CREATE:
             if 'mode' in attrs:
                 attrs['mode'] = self.parse_mode(attrs['mode'])
@@ -588,8 +609,8 @@ class sftp_client (sftp_core):
         path, or throws sftp_status_error.
         """
         tpath = self._wdpath(path)
-        code, req, data = self.put_request(
-            FXP.OPENDIR, self._getid(), self._packstr(tpath))
+        code, req, data = self.put_request(FXP.OPENDIR, self._getid(),
+                                           self._packstr(tpath))
         self._cktype(code, data, FXP.HANDLE)
         handle = sbitter(data).read_sftp_str().value
         return sftp_dir(self, handle, tpath)
@@ -651,7 +672,7 @@ class sftp_client (sftp_core):
         """Unlink a file."""
         self._path2stat(FXP.REMOVE, path)
 
-    def walk(self, path, followlinks = False, include_stat = False):
+    def walk(self, path, followlinks=False, include_stat=False):
         """Emulate the behaviour of os.walk() for a path on the remote server.
         For each directory in the tree rooted at path, yields a triple (dpath,
         dnames, fnames) where
@@ -693,22 +714,22 @@ class sftp_client (sftp_core):
                                 dnames.append(outmap(name, attr))
                             continue
                         except sftp_status_error:
-                            pass # fallthru to Case 3
+                            pass  # fallthru to Case 3
 
                     # Case 3: Everything else
                     fnames.append(outmap(name, attr))
 
             yield cur, dnames, fnames
-            queue.extend(os.path.join(cur, pathmap(x))
-                         for x in reversed(dnames))
+            queue.extend(
+                os.path.join(cur, pathmap(x)) for x in reversed(dnames))
 
     # --- Extended commands --------------------------------------------
 
     def posix_rename(self, oldpath, newpath):
         """[ext] Perform a POSIX rename operation."""
-        self._extreq("posix-rename@openssh.com",
-                     self._packstr(self._wdpath(oldpath),
-                                   self._wdpath(newpath)))
+        self._extreq(
+            "posix-rename@openssh.com",
+            self._packstr(self._wdpath(oldpath), self._wdpath(newpath)))
 
     def statvfs(self, path):
         """[ext] Return a dictionary of VFS stat information for the given
@@ -728,17 +749,16 @@ class sftp_client (sftp_core):
           'f_namemax': maximum allowed file name length in bytes
         """
         return self._unpackvfs(
-            self._extreq("statvfs@openssh.com",
-                         self._packstr(self._wdpath(path))))
+            self._extreq("statvfs@openssh.com", self._packstr(
+                self._wdpath(path))))
 
     @classmethod
     def _unpackvfs(cls, data):
         """[private] Unpack a statvfs() reply buffer."""
         p = sbitter(data)
         out = {}
-        for fname in ('bsize', 'frsize', 'blocks', 'bfree', 'bavail',
-                      'files', 'ffree',  'favail', 'fsid',  'flag',
-                      'namemax'):
+        for fname in ('bsize', 'frsize', 'blocks', 'bfree', 'bavail', 'files',
+                      'ffree', 'favail', 'fsid', 'flag', 'namemax'):
             p = p.read_uint64()
             out['f_' + fname] = p.value
         return out
@@ -750,31 +770,33 @@ class sftp_client (sftp_core):
         code, req, data = self.put_request(op, self._getid(), data)
         self._cktype(code, data)
 
-    def _extreq(self, name, data = b''):
+    def _extreq(self, name, data=b''):
         """[private] Issue an extended request and return the response data, or
         throw sftp_status_error.
         """
         p = sbitter(b'') \
             .write_sftp_str(self._ckstr(name)) \
             .write(data)
-        code, req, rdata = self.put_request(
-            FXP.EXTENDED, self._getid(), p.source)
+        code, req, rdata = self.put_request(FXP.EXTENDED, self._getid(),
+                                            p.source)
         self._cktype(code, rdata, FXP.EXTENDED_REPLY)
         return rdata
 
     def _getid(self):
         """[private] Return a fresh request ID."""
-        try:     return self._nexti
-        finally: self._nexti += 1
+        try:
+            return self._nexti
+        finally:
+            self._nexti += 1
 
     def _getstat(self, key, op):
         """[private] Common code shared by stat(), lstat(), fstat()."""
-        code, req, data = self.put_request(
-            op, self._getid(), self._packstr(key))
+        code, req, data = self.put_request(op, self._getid(),
+                                           self._packstr(key))
         self._cktype(code, data, FXP.ATTRS)
         return self._unpackattrs(data)
 
-    def _open(self, path, flags, attrs = {}):
+    def _open(self, path, flags, attrs={}):
         """[private] Low-level interface for open() and create().  Returns a
         handle for the opened/created file, or throws sftp_status_error.  See
         .open() for flags.
@@ -784,16 +806,15 @@ class sftp_client (sftp_core):
             .write_uint32(flags) \
             .write(self._packattrs(attrs))
 
-        code, req, data = self.put_request(
-            FXP.OPEN, self._getid(), p.source)
+        code, req, data = self.put_request(FXP.OPEN, self._getid(), p.source)
 
         self._cktype(code, data, FXP.HANDLE)
         return sbitter(data).read_sftp_str().value
 
     def _path2path(self, path, op):
         """[private] Common code for path-to-path conversions."""
-        code, req, data = self.put_request(
-            op, self._getid(), self._packstr(path))
+        code, req, data = self.put_request(op, self._getid(),
+                                           self._packstr(path))
         self._cktype(code, data, FXP.NAME)
         res = self._unpackname(data)
         return res[0][0]
@@ -802,16 +823,15 @@ class sftp_client (sftp_core):
         """[private] Apply an operation that takes one or more paths and
         returns a status.
         """
-        p = sbitter(b'').write_sftp_strs(
-            self._wdpath(path) for path in paths)
+        p = sbitter(b'').write_sftp_strs(self._wdpath(path) for path in paths)
         self._dostat(op, p.source)
 
     def _release(self, handle):
         """[private] Release a handle allocated by an OPEN or OPENDIR request.
         This is generally not called directly.
         """
-        code, req, data = self.put_request(
-            FXP.CLOSE, self._getid(), self._packstr(handle))
+        code, req, data = self.put_request(FXP.CLOSE, self._getid(),
+                                           self._packstr(handle))
         self._cktype(code, data)
         return 0
 
@@ -822,7 +842,7 @@ class sftp_client (sftp_core):
                  .write(self._packattrs(attrs))
         self._dostat(op, packet.source)
 
-    def _wdpath(self, path, use_wd = False):
+    def _wdpath(self, path, use_wd=False):
         """[private] Expand relative paths using the working directory.
         """
         if path is None:
@@ -840,13 +860,17 @@ class sftp_client (sftp_core):
     @classmethod
     def _packstr(cls, *ss):
         """[private] Pack one or more strings in SFTP format."""
-        return sbitter(b'').write_sftp_strs(
-            cls._ckstr(s) for s in ss).source
+        return sbitter(b'').write_sftp_strs(cls._ckstr(s) for s in ss).source
 
     # Mapping from characters to SFTP mode bits.
-    pf_map = dict(r = FXF.READ,  w = FXF.WRITE, a = FXF.APPEND,
-                  c = FXF.CREAT, e = FXF.CREAT | FXF.EXCL,
-                  t = FXF.CREAT | FXF.TRUNC)
+    pf_map = dict(
+        r=FXF.READ,
+        w=FXF.WRITE,
+        a=FXF.APPEND,
+        c=FXF.CREAT,
+        e=FXF.CREAT | FXF.EXCL,
+        t=FXF.CREAT | FXF.TRUNC)
+
     @classmethod
     def _pflags(cls, flags):
         """[private] Translate flag characters into FXF flag bits.
@@ -860,16 +884,27 @@ class sftp_client (sftp_core):
         return result
 
     # Mapping from mode string type characters to S_IFMT values.
-    pt_map = {'d': os_stat.S_IFDIR, '-': os_stat.S_IFREG,
-              'b': os_stat.S_IFBLK, 'c': os_stat.S_IFCHR,
-              'p': os_stat.S_IFIFO, 'l': os_stat.S_IFLNK,
-              's': os_stat.S_IFSOCK,
-              }
+    pt_map = {
+        'd': os_stat.S_IFDIR,
+        '-': os_stat.S_IFREG,
+        'b': os_stat.S_IFBLK,
+        'c': os_stat.S_IFCHR,
+        'p': os_stat.S_IFIFO,
+        'l': os_stat.S_IFLNK,
+        's': os_stat.S_IFSOCK,
+    }
 
     # Mapping from permission characters to bit values.
-    pp_map = {'r': '1', 'w': '1', 'x': '1', '-': '0',
-              'S': '0', 's': '1', 'T': '0', 't': '1',
-              }
+    pp_map = {
+        'r': '1',
+        'w': '1',
+        'x': '1',
+        '-': '0',
+        'S': '0',
+        's': '1',
+        'T': '0',
+        't': '1',
+    }
 
     @classmethod
     def parse_mode(cls, mode):
@@ -934,15 +969,17 @@ class sftp_client (sftp_core):
         p = sbitter(data).read_uint32()
         res = [None] * p.value
         for pos in range(len(res)):
-            p = p.read_sftp_str() ; name = p.value
-            p = p.read_sftp_str() ; long = p.value
-            A = cls._unpackattrs(p.source[p.pos:], mark_end = True)
+            p = p.read_sftp_str()
+            name = p.value
+            p = p.read_sftp_str()
+            long = p.value
+            A = cls._unpackattrs(p.source[p.pos:], mark_end=True)
             p = p.move(A.pop('_end'))
             res[pos] = name, long, A
         return res
 
     @classmethod
-    def _packattrs(cls, attrs, use_extended = False):
+    def _packattrs(cls, attrs, use_extended=False):
         """[private] Pack a dictionary of attributes into a packet payload.
         See .setstat() for a description of the dictionary.
 
@@ -980,13 +1017,14 @@ class sftp_client (sftp_core):
             flags |= FILEXFER_ATTR.EXTENDED
             packet = packet.write_uint32(len(A))
             for key, val in A.items():
-                tk = cls._ckstr(key).lstrip(b'@'); tv = cls._ckstr(val)
+                tk = cls._ckstr(key).lstrip(b'@')
+                tv = cls._ckstr(val)
                 packet = packet.write_sftp_str(tk).write_sftp_str(tv)
 
         return packet.seek(0).write_uint32(flags).source
 
     @classmethod
-    def _unpackattrs(cls, data, mark_end = False):
+    def _unpackattrs(cls, data, mark_end=False):
         """[private] Unpack an attributes structure from a packet payload,
         returning a dictionary of the corresponding values.  This is the
         inverse of ._packattrs().
@@ -1008,10 +1046,11 @@ class sftp_client (sftp_core):
             packet = packet.read_uint32().into(A, 'atime')
             packet = packet.read_uint32().into(A, 'mtime')
         if flags & FILEXFER_ATTR.EXTENDED:
-            packet = packet.read_uint32() ; count = packet.value
+            packet = packet.read_uint32()
+            count = packet.value
             for i in range(count):
                 packet = packet.read_sftp_str()
-                key    = packet.value
+                key = packet.value
                 packet = packet.read_sftp_str().into(A, key)
 
         if mark_end:
@@ -1038,8 +1077,10 @@ class sftp_client (sftp_core):
             p = p.read_uint32()
             err_code = p.value
             if err_code != FX.OK:
-                p = p.read_sftp_str(); err_msg = p.value
-                p = p.read_sftp_str(); lang_tag = p.value
+                p = p.read_sftp_str()
+                err_msg = p.value
+                p = p.read_sftp_str()
+                lang_tag = p.value
 
                 raise sftp_status_error(err_code, err_msg, lang_tag)
 
@@ -1047,10 +1088,11 @@ class sftp_client (sftp_core):
             raise sftp_proto_error("unexpected response", code, expected)
 
 
-class SFTP (sftp_client):
+class SFTP(sftp_client):
     """A wrapper for sftp_client that includes an interface to set up and tear
     down an SSH connection at the appropriate times.
     """
+
     def __init__(self, host, **kw):
         """See sshclient.SSH.__init__(...) for interpretation of arguments.
 
@@ -1083,6 +1125,7 @@ def checkopen(meth):
     """Verify that the file is open before applying a file method.  Raises
     ValueError if the file is closed.
     """
+
     def wrapper(self, *args, **kw):
         if self.handle is None:
             raise ValueError("I/O operation on closed file")
@@ -1091,8 +1134,9 @@ def checkopen(meth):
     return functools.update_wrapper(wrapper, meth)
 
 
-class sftp_entry (tuple):
+class sftp_entry(tuple):
     """Information on a directory entry."""
+
     def __new__(cls, dp, index, name, label, stat):
         return tuple.__new__(cls, (name, label, stat))
 
@@ -1101,28 +1145,38 @@ class sftp_entry (tuple):
         self._index = index
 
     @property
-    def name(self): return self[0]
+    def name(self):
+        return self[0]
+
     @property
-    def label(self): return self[1]
+    def label(self):
+        return self[1]
+
     @property
-    def stat(self): return self[2]
+    def stat(self):
+        return self[2]
+
     @property
-    def index(self): return self._index
+    def index(self):
+        return self._index
+
     @property
     def path(self):
         return os.path.join(self.dir.path, self.name)
+
     @property
     def stat(self):
         return self.dir.client.lstat(self.path)
 
 
-class sftp_thing (object):
+class sftp_thing(object):
     """Base class for file and directory wrappers."""
-    def __init__(self, cli, handle, path = None):
+
+    def __init__(self, cli, handle, path=None):
         self.client = cli
         self.handle = handle
-        self._path  = path
-        self._pres  = False # true if path has been looked up
+        self._path = path
+        self._pres = False  # true if path has been looked up
 
     @property
     @checkopen
@@ -1156,9 +1210,8 @@ class sftp_thing (object):
             self.client = None
 
     def __repr__(self):
-        return '#<%s handle=%r client=%x>' % (
-            type(self).__name__, self.handle,
-            id(self.client))
+        return '#<%s handle=%r client=%x>' % (type(self).__name__, self.handle,
+                                              id(self.client))
 
     def __enter__(self):
         return self
@@ -1170,7 +1223,7 @@ class sftp_thing (object):
         self.close()
 
 
-class sftp_file (sftp_thing):
+class sftp_file(sftp_thing):
     """Provides an interface to a file on an SFTP server that is similar to the
     built-in file object.  You will not usually construct instances of
     sftp_file directly, but will obtain them from the .open() and .create()
@@ -1181,14 +1234,14 @@ class sftp_file (sftp_thing):
     """
 
     # Seek offset anchors, mirrored from os for convenience.
-    SEEK_SET  = os.SEEK_SET
-    SEEK_CUR  = os.SEEK_CUR
-    SEEK_END  = os.SEEK_END
+    SEEK_SET = os.SEEK_SET
+    SEEK_CUR = os.SEEK_CUR
+    SEEK_END = os.SEEK_END
 
-    def __init__(self, cli, handle, path = None, flags = 0):
+    def __init__(self, cli, handle, path=None, flags=0):
         super(sftp_file, self).__init__(cli, handle, path)
         self._isapp = bool(flags & FXF.APPEND)
-        self._pos   = 0
+        self._pos = 0
 
     def __iter__(self):
         """Iterate over the lines of the file from the current position to the
@@ -1207,7 +1260,7 @@ class sftp_file (sftp_thing):
                 break
             yield data
 
-    def _read(self, vs, eof_ok = True):
+    def _read(self, vs, eof_ok=True):
         res = self.readv(vs)
         for pos, elt in enumerate(res):
             if type(elt) is bytes: pass
@@ -1225,21 +1278,20 @@ class sftp_file (sftp_thing):
 
         size = self.stat['size']
         if count is None: return size - self._pos
-        else:             return min(count, size)
+        else: return min(count, size)
 
-    def read(self, count = None):
+    def read(self, count=None):
         """Read the specified number of bytes at the current cursor position.
         If count is omitted, the rest of the file is read.  If the current
         position is at or after the total file size, an empty string is
         returned.
         """
-        rc  = self._ckcount(count)
-        out = self._read(self._burst(
-            self._pos, rc, self.client.MAX_READ_SIZE))
+        rc = self._ckcount(count)
+        out = self._read(self._burst(self._pos, rc, self.client.MAX_READ_SIZE))
         self._pos += len(out)
         return out
 
-    def read_at(self, offset, count, eof_ok = True):
+    def read_at(self, offset, count, eof_ok=True):
         """Read the specified number of bytes at a specific offset.  Does not
         move the cursor.
 
@@ -1247,8 +1299,8 @@ class sftp_file (sftp_thing):
         empty string; otherwise, EOFError is thrown.
         """
         rc = self._ckcount(count)
-        return self._read(self._burst(
-            offset, rc, self.client.MAX_READ_SIZE), eof_ok)
+        return self._read(
+            self._burst(offset, rc, self.client.MAX_READ_SIZE), eof_ok)
 
     def readline(self):
         """Read from the current position to the next available line break, and
@@ -1260,7 +1312,7 @@ class sftp_file (sftp_thing):
         self._pos = end
         return data
 
-    def _readline(self, start_pos, cache = b''):
+    def _readline(self, start_pos, cache=b''):
         """[private] Read the next available line beginning at start_pos.
         Returns a tuple (end_pos, string, tail) giving the position of the next
         available byte, the text of the resulting line, and any leftover data
@@ -1279,7 +1331,7 @@ class sftp_file (sftp_thing):
                 break
 
             try:
-                buf.append(self.read_at(pos, chunk_size, eof_ok = False))
+                buf.append(self.read_at(pos, chunk_size, eof_ok=False))
                 pos += len(buf[-1])
             except EOFError:
                 break
@@ -1291,18 +1343,20 @@ class sftp_file (sftp_thing):
         return pos, b''.join(buf), cache
 
     @checkopen
-    def seek(self, pos, anchor = SEEK_SET):
+    def seek(self, pos, anchor=SEEK_SET):
         """Move the cursor to a new position; as lseek(2).  The resulting
         position is returned.
         """
-        if   anchor == self.SEEK_SET: np = pos
+        if anchor == self.SEEK_SET: np = pos
         elif anchor == self.SEEK_CUR: np = self._pos + pos
         elif anchor == self.SEEK_END: np = self.stat['size'] + pos
         else:
             raise ValueError("invalid anchor")
 
         if np < 0: raise IndexError("seek target is negative")
-        else:      self._pos = np; return np
+        else:
+            self._pos = np
+            return np
 
     @property
     @checkopen
@@ -1330,13 +1384,13 @@ class sftp_file (sftp_thing):
         return self._pos
 
     @checkopen
-    def truncate(self, pos = None):
+    def truncate(self, pos=None):
         """Truncate the file at the specified position, or at the cursor if no
         position is given.  Does not move the cursor.
         """
         if pos is None: pos = self._pos
         if pos < self.stat['size']:
-            self.setstat(dict(size = pos))
+            self.setstat(dict(size=pos))
 
     def write(self, data):
         """Write the specified data at the current cursor position, or at
@@ -1363,7 +1417,7 @@ class sftp_file (sftp_thing):
         Block data is returned as byte strings; in case of error, the block
         data is replaced with an sftp_status_error object.
         """
-        out  = list([] for t in vs)
+        out = list([] for t in vs)
         rmap = {}
         size = self.stat['size']
         base = sbitter(b'').write_sftp_str(self.handle)
@@ -1397,7 +1451,8 @@ class sftp_file (sftp_thing):
 
                 dlen = sum(len(s) for s in out[pos])
                 if dlen < count and offset + count <= size:
-                    offset += dlen; count -= dlen
+                    offset += dlen
+                    count -= dlen
 
                     p = base.write_uint64(offset).write_uint32(count)
                     r = self.client._getid()
@@ -1409,8 +1464,7 @@ class sftp_file (sftp_thing):
 
             rmap.pop(id)
 
-        return list((b''.join(s) if isinstance(s, list) else s)
-                    for s in out)
+        return list((b''.join(s) if isinstance(s, list) else s) for s in out)
 
     @checkopen
     def writev(self, vs):
@@ -1423,18 +1477,19 @@ class sftp_file (sftp_thing):
         """
         total = 0
         error = None
-        wmap  = {}
-        base  = sbitter(b'').write_sftp_str(self.handle)
+        wmap = {}
+        base = sbitter(b'').write_sftp_str(self.handle)
 
         # Queue up all the writes without waiting; we will then wait
         # for the confirmations.
         for offset, data in vs:
-            for lo, nc in self._burst(offset, len(data), self.client.MAX_WRITE_SIZE):
+            for lo, nc in self._burst(offset, len(data),
+                                      self.client.MAX_WRITE_SIZE):
                 db = lo - offset
-                d  = data[db:db + nc]
-                p  = base.write_uint64(lo).write_sftp_str(d)
-                r  = self.client._getid()
-                t  = self.client.put_packet(FXP.WRITE, r, p.source)
+                d = data[db:db + nc]
+                p = base.write_uint64(lo).write_sftp_str(d)
+                r = self.client._getid()
+                t = self.client.put_packet(FXP.WRITE, r, p.source)
                 wmap[r] = t, len(d)
 
         def mfunc(t):
@@ -1465,14 +1520,15 @@ class sftp_file (sftp_thing):
         regions that span the specified range with each range being no larger
         than size.
         """
-        spans = [] ; max = offset + count
+        spans = []
+        max = offset + count
         for lo in range(offset, max, size):
             hi = min(lo + size, max)
             spans.append((lo, hi - lo))
         return spans
 
 
-class sftp_dir (sftp_thing):
+class sftp_dir(sftp_thing):
     """Provides an interface to a directory as an iterable sequence.
 
     Usage:
@@ -1482,7 +1538,8 @@ class sftp_dir (sftp_thing):
      num_entries = len(d)
      name, long, attrs = d[5]
     """
-    def __init__(self, cli, handle, path = None):
+
+    def __init__(self, cli, handle, path=None):
         super(sftp_dir, self).__init__(cli, handle, path)
         self._items = []
         self._cpos = 0
@@ -1492,8 +1549,9 @@ class sftp_dir (sftp_thing):
     def _getpos(self, pos):
         while not self._done and pos >= len(self._items):
             p = sbitter(b'').write_sftp_str(self.handle)
-            code, id, data = self.client.put_request(
-                FXP.READDIR, self.client._getid(), p.source)
+            code, id, data = self.client.put_request(FXP.READDIR,
+                                                     self.client._getid(),
+                                                     p.source)
 
             try:
                 self.client._cktype(code, data, FXP.NAME)
@@ -1510,8 +1568,10 @@ class sftp_dir (sftp_thing):
 
     def _getall(self):
         while not self._done:
-            try: self._getpos(len(self._items))
-            except IndexError: pass
+            try:
+                self._getpos(len(self._items))
+            except IndexError:
+                pass
 
     def __getitem__(self, itm):
         return self._getpos(itm)
@@ -1523,9 +1583,12 @@ class sftp_dir (sftp_thing):
     def __iter__(self):
         pos = 0
         while True:
-            try: yield self._getpos(pos)
-            except IndexError: break
-            finally: pos += 1
+            try:
+                yield self._getpos(pos)
+            except IndexError:
+                break
+            finally:
+                pos += 1
 
     @property
     @checkopen

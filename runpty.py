@@ -7,7 +7,8 @@
 
 import os, signal
 
-def run_with_pty(argv, path = None):
+
+def run_with_pty(argv, path=None):
     """Run the specified program in a child process with a pseudo-
     terminal.  If path is specified, it will be used as the executable
     path; otherwise, the first argument will be used and the
@@ -37,9 +38,14 @@ def run_with_pty(argv, path = None):
         pty = os.open(os.ttyname(slave), os.O_RDWR)
 
         # Hook up standard I/O channels.
-        os.dup2(headr, 0); os.close(headr); os.close(headw)
-        os.dup2(tailw, 1); os.close(tailr); os.close(tailw)
-        os.dup2(pty,   2); os.close(pty)
+        os.dup2(headr, 0)
+        os.close(headr)
+        os.close(headw)
+        os.dup2(tailw, 1)
+        os.close(tailr)
+        os.close(tailw)
+        os.dup2(pty, 2)
+        os.close(pty)
 
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
@@ -59,5 +65,6 @@ def run_with_pty(argv, path = None):
         os.close(slave)
 
         return pid, master, headw, tailr
+
 
 # Here there be dragons
