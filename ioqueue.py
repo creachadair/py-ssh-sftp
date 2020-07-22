@@ -36,7 +36,6 @@ class task_not_owner(KeyError):
 
 
 class task(object):
-
     def __init__(self, id, tag, attrs):
         self.id = id
         self.tag = tag
@@ -95,7 +94,6 @@ class ioqueue(object):
     of the queue, and allows a producer to push a task at the head of
     the queue.
     """
-
     def __init__(self, **opts):
         """Keyword options understood:
 

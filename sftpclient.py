@@ -135,7 +135,6 @@ class sbitter(object):
     principle any type that supports len, integer indexing, slicing,
     and catenation should work.
     """
-
     def __init__(self, source, pos=0, value=None):
         """Source may be any indexable sequence type.
         """
@@ -255,7 +254,6 @@ def catchkey(meth):
     """Convert KeyError thrown out of an ioqueue access and convert it
     into sftp_io_error.
     """
-
     def wrapper(self, *args, **kw):
         try:
             return meth(self, *args, **kw)
@@ -269,7 +267,6 @@ class sftp_core(object):
     """Low-level SFTP client, implementing basic packet I/O and request
     mechanics.  Subclasses should provide higher-level abstractions.
     """
-
     def __init__(self, ifd, ofd):
         """Create an SFTP client with file descriptors connected to an active
         SSH transport of some kind.
@@ -338,8 +335,10 @@ class sftp_core(object):
         """
         if not self._wr.is_alive():
             raise sftp_io_error("writer thread is closed")
-        return self._wq.add_task(
-            'send', type=type, request_id=request_id, data=data)
+        return self._wq.add_task('send',
+                                 type=type,
+                                 request_id=request_id,
+                                 data=data)
 
     @catchkey
     def push_packet(self, type, request_id, data=b''):
@@ -350,14 +349,15 @@ class sftp_core(object):
         """
         if not self._wr.is_alive():
             raise sftp_io_error("writer thread is closed")
-        return self._wq.push_task(
-            'send', type=type, request_id=request_id, data=data)
+        return self._wq.push_task('send',
+                                  type=type,
+                                  request_id=request_id,
+                                  data=data)
 
     def get_any_packet(self, timeout=None):
         """Read a single packet from the server; throws KeyError if timeout is
         reached and no packet is available.
         """
-
         def mfunc(t):
             return t.tag == 'recv'
 
@@ -374,7 +374,6 @@ class sftp_core(object):
         """Read the next available packet matching the given request_id; throws
         KeyError if timeout isn't None and no packet is available.
         """
-
         def mfunc(t):
             return t.t_request_id == request_id
 
@@ -428,7 +427,7 @@ class sftp_core(object):
         string, if any.
         """
         nc = struct.calcsize(fmt)
-        return struct.unpack_from(fmt, raw) + (raw[nc:],)
+        return struct.unpack_from(fmt, raw) + (raw[nc:], )
 
     def _write(self, data):
         "[private] Write all data to the output, or throw OSError."
@@ -561,8 +560,8 @@ class sftp_client(sftp_core):
         path.
         """
         with self.opendir(self._wdpath(path, True)) as d:
-            return list(
-                name for name, long, attrs in d if name not in (b'.', b'..'))
+            return list(name for name, long, attrs in d
+                        if name not in (b'.', b'..'))
 
     def mkdir(self, path, **attrs):
         """Create a new empty directory, with initial stat values optionally
@@ -749,8 +748,8 @@ class sftp_client(sftp_core):
           'f_namemax': maximum allowed file name length in bytes
         """
         return self._unpackvfs(
-            self._extreq("statvfs@openssh.com", self._packstr(
-                self._wdpath(path))))
+            self._extreq("statvfs@openssh.com",
+                         self._packstr(self._wdpath(path))))
 
     @classmethod
     def _unpackvfs(cls, data):
@@ -863,13 +862,12 @@ class sftp_client(sftp_core):
         return sbitter(b'').write_sftp_strs(cls._ckstr(s) for s in ss).source
 
     # Mapping from characters to SFTP mode bits.
-    pf_map = dict(
-        r=FXF.READ,
-        w=FXF.WRITE,
-        a=FXF.APPEND,
-        c=FXF.CREAT,
-        e=FXF.CREAT | FXF.EXCL,
-        t=FXF.CREAT | FXF.TRUNC)
+    pf_map = dict(r=FXF.READ,
+                  w=FXF.WRITE,
+                  a=FXF.APPEND,
+                  c=FXF.CREAT,
+                  e=FXF.CREAT | FXF.EXCL,
+                  t=FXF.CREAT | FXF.TRUNC)
 
     @classmethod
     def _pflags(cls, flags):
@@ -1009,8 +1007,8 @@ class sftp_client(sftp_core):
             packet = packet.write_uint32(int(A.pop('mtime', 0)))
 
         for key in list(A):
-            if not (type(key) is str and '@' in key or
-                    type(key) is bytes and b'@' in key):
+            if not (type(key) is str and '@' in key
+                    or type(key) is bytes and b'@' in key):
                 A.pop(key)
 
         if use_extended and len(A) > 0:
@@ -1092,7 +1090,6 @@ class SFTP(sftp_client):
     """A wrapper for sftp_client that includes an interface to set up and tear
     down an SSH connection at the appropriate times.
     """
-
     def __init__(self, host, **kw):
         """See sshclient.SSH.__init__(...) for interpretation of arguments.
 
@@ -1125,7 +1122,6 @@ def checkopen(meth):
     """Verify that the file is open before applying a file method.  Raises
     ValueError if the file is closed.
     """
-
     def wrapper(self, *args, **kw):
         if self.handle is None:
             raise ValueError("I/O operation on closed file")
@@ -1136,7 +1132,6 @@ def checkopen(meth):
 
 class sftp_entry(tuple):
     """Information on a directory entry."""
-
     def __new__(cls, dp, index, name, label, stat):
         return tuple.__new__(cls, (name, label, stat))
 
@@ -1171,7 +1166,6 @@ class sftp_entry(tuple):
 
 class sftp_thing(object):
     """Base class for file and directory wrappers."""
-
     def __init__(self, cli, handle, path=None):
         self.client = cli
         self.handle = handle
@@ -1299,8 +1293,8 @@ class sftp_file(sftp_thing):
         empty string; otherwise, EOFError is thrown.
         """
         rc = self._ckcount(count)
-        return self._read(
-            self._burst(offset, rc, self.client.MAX_READ_SIZE), eof_ok)
+        return self._read(self._burst(offset, rc, self.client.MAX_READ_SIZE),
+                          eof_ok)
 
     def readline(self):
         """Read from the current position to the next available line break, and
@@ -1538,7 +1532,6 @@ class sftp_dir(sftp_thing):
      num_entries = len(d)
      name, long, attrs = d[5]
     """
-
     def __init__(self, cli, handle, path=None):
         super(sftp_dir, self).__init__(cli, handle, path)
         self._items = []

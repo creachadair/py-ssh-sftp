@@ -28,7 +28,6 @@ class SSH(object):
     informational queries to the .query() method, whose return value
     is passed back to SSH through the pty.
     """
-
     def __init__(self, host, *args, **opts):
         """Set up an SSH wrapper.  Positional arguments are passed as the
         remote command; keyword arguments are used to set values.  Certain
@@ -189,7 +188,6 @@ class SSH(object):
         """[private] Construct an argument vector from the options
         that were passed in to the constructor.
         """
-
         def OV(v):
             if v is True: return "yes"
             elif v is False: return "no"
@@ -222,6 +220,6 @@ class SSH(object):
         return argv
 
 
-__all__ = ("SSH",)
+__all__ = ("SSH", )
 
 # Here there be dragons
